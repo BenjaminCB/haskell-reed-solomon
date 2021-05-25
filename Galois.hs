@@ -64,15 +64,16 @@ polyAdd a b = let (long, short) = if length a > length b
 -- need to draw this out to understand it
 polyMultiply :: Poly -> Poly -> Poly
 polyMultiply [] _ = [0]
-polyMultiply (x:xs) ys = addPoly (map (elemMultiply x) ys) (0 : polyMultiply xs ys)
+polyMultiply (x:xs) ys = polyAdd (map (elemMultiply x) ys) (0 : polyMultiply xs ys)
 
--- does not work
 polyDivide :: Poly -> Poly -> Poly
-polyDivide a b = let diff = polyDegree a - polyDegree b
-                     mb   = map (elemMultiply $ last a) b
+polyDivide a b = let diff   = polyDegree a - polyDegree b
+                     aOverB = elemMultiply (last a) (elemInv $ last b)
+                     mb     = map (elemMultiply aOverB) b
+                     ta     = take (length a - 1)
                  in  if diff == 0
-                     then polyAdd a mb
-                     else polyDivide (polyAdd a $ polyMultiplyX mb diff) b
+                     then ta $ polyAdd a mb
+                     else polyDivide (ta $ polyAdd a $ polyMultiplyX mb diff) b
 
 polyMultiplyX :: Poly -> Int -> Poly
 polyMultiplyX p n = replicate n 0 ++ p
@@ -106,4 +107,5 @@ elemMultiply :: Element -> Element -> Element
 elemMultiply a b = (!!) toPoly $ mod (toIndex!!a + toIndex!!b) (2 ^ m - 1)
 
 elemInv :: Element -> Element
-elemInv e = (!!) toPoly $ 2 ^ m - 1 - toIndex!!e
+elemInv e = (!!) toPoly $ mod (nElements - (toIndex!!e)) nElements where
+    nElements = 2 ^ m - 1
