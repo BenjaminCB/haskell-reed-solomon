@@ -36,6 +36,11 @@ initToIndex gen = (:) (-1) $ listFlip $ initToPoly gen
 initToIndex' :: [Element] -> [Int]
 initToIndex' xs = (-1) : listFlip xs
 
+initCodeGenrator :: [Element] -> [Element]
+initCodeGenrator xs = init [head toPoly, 1] 1 where
+    init code n | n < 2 * t = init (polyMultiply code [toPoly!!n, 1]) (n + 1)
+                | otherwise = code
+
 listFlip :: [Int] -> [Int]
 listFlip xs = map (indexOf xs) [1..maximum xs]
 
