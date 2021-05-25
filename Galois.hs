@@ -16,7 +16,7 @@ k = 11
 t = div (n - k) 2
 g = 2 ^ 4 + 2 ^ 3 + 1 :: Int
 toPoly = initToPoly g
-toIndex = initToIndex'
+toIndex = initToIndex' toPoly
 
 
 initToPoly :: Element -> [Element]
@@ -31,13 +31,13 @@ initToPoly gen = let size = 2 ^ m
                      in init [1] 1 (size - 2)
 
 initToIndex :: Element -> [Int]
-initToIndex gen = (:) (-1) $ flipList $ initToPoly gen
+initToIndex gen = (:) (-1) $ listFlip $ initToPoly gen
 
-initToIndex' :: [Int]
-initToIndex' = (-1) : flipList toPoly
+initToIndex' :: [Element] -> [Int]
+initToIndex' xs = (-1) : listFlip xs
 
-flipList :: [Int] -> [Int]
-flipList xs = map (indexOf xs) [1..maximum xs]
+listFlip :: [Int] -> [Int]
+listFlip xs = map (indexOf xs) [1..maximum xs]
 
 indexOf :: [Element] -> Element -> Int
 indexOf es e = elemIndex' $ elemIndex e es
@@ -54,28 +54,28 @@ highestBit e = highestBit' e 1 0 where
                highestBit' e b n | b >= e    = n - 1
                                  | otherwise = highestBit' e (shift b 1) (n + 1)
 
-addPoly :: Poly -> Poly -> Poly
-addPoly a b = let (long, short) = if length a > length b
+polyAdd :: Poly -> Poly -> Poly
+polyAdd a b = let (long, short) = if length a > length b
                                   then (a,b)
                                   else (b,a)
                   len           = length short
               in zipWith xor short long ++ drop len long
 
 -- need to draw this out to understand it
-multiplyPoly :: Poly -> Poly -> Poly
-multiplyPoly [] _ = [0]
-multiplyPoly (x:xs) ys = addPoly (map (multiplyElem x) ys) (0 : multiplyPoly xs ys)
+polyMultiply :: Poly -> Poly -> Poly
+polyMultiply [] _ = [0]
+polyMultiply (x:xs) ys = addPoly (map (elemMultiply x) ys) (0 : polyMultiply xs ys)
 
 -- does not work
-dividePoly :: Poly -> Poly -> Poly
-dividePoly a b = let diff = degreePoly a - degreePoly b
-                     mb   = map (multiplyElem $ last a) b
+polyDivide :: Poly -> Poly -> Poly
+polyDivide a b = let diff = polyDegree a - polyDegree b
+                     mb   = map (elemMultiply $ last a) b
                  in  if diff == 0
-                     then addPoly a mb
-                     else dividePoly (addPoly a $ multiplyX mb diff) b
+                     then polyAdd a mb
+                     else polyDivide (polyAdd a $ polyMultiplyX mb diff) b
 
-multiplyX :: Poly -> Int -> Poly
-multiplyX p n = replicate n 0 ++ p
+polyMultiplyX :: Poly -> Int -> Poly
+polyMultiplyX p n = replicate n 0 ++ p
 
 ddx :: Poly -> Poly
 ddx p = tail $ go p 0 [] where
@@ -83,27 +83,27 @@ ddx p = tail $ go p 0 [] where
     go (p:ps) 0 p' = go ps 1 (0:p')
     go (p:ps) 1 p' = go ps 0 (p:p')
 
-degreePoly :: Poly -> Int
-degreePoly p = f (length p - 1) where
+polyDegree :: Poly -> Int
+polyDegree p = f (length p - 1) where
     f n | null p || n == 0 = -1
         | p!!n > 0         = n
         | otherwise        = f $ n - 1
 
-evalPoly :: Poly -> Element -> Element
-evalPoly p e = let p' = reverse p
+polyEval :: Poly -> Element -> Element
+polyEval p e = let p' = reverse p
                    eval [] e' = e'
-                   eval (p:ps) e' = eval ps (xor (multiplyElem e' e) p)
+                   eval (p:ps) e' = eval ps (xor (elemMultiply e' e) p)
                in  eval p' 0
 
 -- regular evaluation to test for logic while elemMultiply is not defined
-evalPoly' :: Poly -> Element -> Element
-evalPoly' p e = let p' = reverse p
+polyEval' :: Poly -> Element -> Element
+polyEval' p e = let p' = reverse p
                     eval [] e' = e'
                     eval (p:ps) e' = eval ps (e' * e + p)
                 in  eval p' 0
 
-multiplyElem :: Element -> Element -> Element
-multiplyElem a b = (!!) toPoly $ mod (toIndex!!a + toIndex!!b) (2 ^ m - 1)
+elemMultiply :: Element -> Element -> Element
+elemMultiply a b = (!!) toPoly $ mod (toIndex!!a + toIndex!!b) (2 ^ m - 1)
 
-invElem :: Element -> Element
-invElem e = (!!) toPoly $ 2 ^ m - 1 - toIndex!!e
+elemInv :: Element -> Element
+elemInv e = (!!) toPoly $ 2 ^ m - 1 - toIndex!!e
