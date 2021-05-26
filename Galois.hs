@@ -15,8 +15,10 @@ n = 15
 k = 11
 t = div (n - k) 2
 g = 2 ^ 4 + 2 ^ 3 + 1 :: Int
-toPoly = initToPoly g
-toIndex = initToIndex' toPoly
+
+toPoly        = initToPoly g
+toIndex       = initToIndex' toPoly
+codeGenerator = initCodeGenerator toPoly
 
 
 initToPoly :: Element -> [Element]
@@ -36,9 +38,9 @@ initToIndex gen = (:) (-1) $ listFlip $ initToPoly gen
 initToIndex' :: [Element] -> [Int]
 initToIndex' xs = (-1) : listFlip xs
 
-initCodeGenrator :: [Element] -> [Element]
-initCodeGenrator xs = init [head toPoly, 1] 1 where
-    init code n | n < 2 * t = init (polyMultiply code [toPoly!!n, 1]) (n + 1)
+initCodeGenerator :: [Element] -> [Element]
+initCodeGenerator xs = init [head toPoly, 1] 1 where
+    init code n | n < 2 * t = init (polyMultiply code [xs!!n, 1]) (n + 1)
                 | otherwise = code
 
 listFlip :: [Int] -> [Int]
