@@ -4,17 +4,10 @@ module Galois where
 ----should start using maybe as -1 in the multiply step gives wierds results---
 -------------------------------------------------------------------------------
 
+import Types
+import Config
 import Data.Bits
 import Data.List
-
-type Element = Int
-type Poly = [Element]
-
-m = 4
-n = 15
-k = 11
-t = div (n - k) 2
-g = 2 ^ 4 + 2 ^ 3 + 1 :: Int
 
 toPoly        = initToPoly g
 toIndex       = initToIndex' toPoly
