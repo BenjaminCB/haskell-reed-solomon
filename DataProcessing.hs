@@ -5,10 +5,22 @@ import Config
 import Data.Char
 
 strToPoly :: String -> [Poly]
-strToPoly = undefined
+strToPoly str = reverse $ addZeroes $ splitBinToPoly $ strToSplitBin str where
+    addZeroes (x:xs) | length x < k = addZeroes ((0:x) : xs)
+                     | otherwise    = x:xs
 
-binToDec :: [Bool] -> Int
+splitBinToPoly :: [Bits] -> [Poly]
+splitBinToPoly bs = splitBinToPoly' (map binToDec bs) [] where
+    splitBinToPoly' [] ps = ps
+    splitBinToPoly' es ps = splitBinToPoly' (drop k es) (take k es : ps)
+
+binToDec :: Bits -> Int
 binToDec = foldr (\x y -> fromEnum x + 2*y) 0
+
+binToStr :: Bits -> String
+binToStr []         = ""
+binToStr (True:bs)  = "1" ++ binToStr bs
+binToStr (False:bs) = "0" ++ binToStr bs
 
 strToSplitBin :: String -> [Bits]
 strToSplitBin = flip splitBin m . strToBin
@@ -23,17 +35,17 @@ splitBin bs n =
 
 strToBin :: String -> Bits
 strToBin str = let charCodes = map ord str
-                   utfs      = map (toUTF . numToBin) charCodes
+                   utfs      = map (toUTF . decToBin) charCodes
                in  concat utfs
 
-numToBin :: Integral a => a -> Bits
-numToBin n = if n == 0
+decToBin :: Integral a => a -> Bits
+decToBin n = if n == 0
              then [False]
-             else numToBin' n
-             where numToBin' n | n == 0 = []
-                               | even n = numToBin' (div n 2) ++ [False]
-                               | otherwise = numToBin' (div n 2) ++ [True]
+             else decToBin' n
+             where decToBin' n | n == 0 = []
+                               | even n = False : decToBin' (div n 2)
+                               | otherwise = True : decToBin' (div n 2)
 
 toUTF :: Bits -> Bits
-toUTF bs | length bs >= 8 = bs
+toUTF bs | length bs >= 8   = bs
          | otherwise        = toUTF $ False : bs
