@@ -9,14 +9,6 @@ strToPoly str = reverse $ addZeroes $ splitBinToPoly $ strToSplitBin str where
     addZeroes (x:xs) | length x < k = addZeroes ((0:x) : xs)
                      | otherwise    = x:xs
 
-splitBinToPoly :: [Bits] -> [Poly]
-splitBinToPoly bs = splitBinToPoly' (map binToDec bs) [] where
-    splitBinToPoly' [] ps = ps
-    splitBinToPoly' es ps = splitBinToPoly' (drop k es) (take k es : ps)
-
-binToDec :: Bits -> Int
-binToDec = foldr (\x y -> fromEnum x + 2*y) 0
-
 binToStr :: Bits -> String
 binToStr []         = ""
 binToStr (True:bs)  = "1" ++ binToStr bs
@@ -33,10 +25,18 @@ splitBin bs n =
         splitStr' [] _ bss = bss
         splitStr' bs n bss = splitStr' (drop n bs) n (take n bs : bss)
 
+splitBinToPoly :: [Bits] -> [Poly]
+splitBinToPoly bs = splitBinToPoly' (map binToDec bs) [] where
+    splitBinToPoly' [] ps = ps
+    splitBinToPoly' es ps = splitBinToPoly' (drop k es) (take k es : ps)
+
 strToBin :: String -> Bits
 strToBin str = let charCodes = map ord str
                    utfs      = map (toUTF . decToBin) charCodes
                in  concat utfs
+
+binToDec :: Bits -> Int
+binToDec = foldr (\x y -> fromEnum x + 2*y) 0
 
 decToBin :: Integral a => a -> Bits
 decToBin n = if n == 0
