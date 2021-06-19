@@ -104,7 +104,9 @@ polyEval' p e = let p' = reverse p
                 in  eval p' 0
 
 elemMultiply :: Element -> Element -> Element
-elemMultiply a b = (!!) toPoly $ mod (toIndex!!a + toIndex!!b) (2 ^ m - 1)
+elemMultiply a b = if a == 0 || b == 0
+                   then 0
+                   else (!!) toPoly $ mod (toIndex!!a + toIndex!!b) (2 ^ m - 1)
 
 elemInv :: Element -> Element
 elemInv e = (!!) toPoly $ mod (nElements - (toIndex!!e)) nElements where
