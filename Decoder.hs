@@ -6,7 +6,18 @@ import Galois
 import Data.Bits
 
 decodeBlock :: Poly -> Poly
-decodeBlock = undefined
+decodeBlock received =
+    if any (/=0) sp
+    then drop (2 * t) recovered
+    else drop (2 * t) received
+    where
+        sp = syndromes received
+        elp = berlekamp sp
+        errps = chien elp
+        errvs = forney sp elp errps
+        errp = errorPoly errps errvs
+        recovered = polyAdd received errp
+
 
 syndromes :: Poly -> Poly
 syndromes received = calc 0 [] where
@@ -14,10 +25,10 @@ syndromes received = calc 0 [] where
                | otherwise  = calc (i + 1) (polyEval received (toPoly!!i) : syn)
 
 berlekamp :: Poly -> Poly
-berlekamp syns = berlekamp' 1 0 [1] [0, 1] where
+berlekamp sp = berlekamp' 1 0 [1] [0, 1] where
     berlekamp' k l elp c
         | k > 2 * t = elp
-        | otherwise = let err  = calculateError syns elp k l
+        | otherwise = let err  = calculateError sp elp k l
                           elp' = polyAdd elp $ map (elemMultiply err) c
                       in  if 2 * l < k && err /= 0
                           then berlekamp' (k + 1)
@@ -30,21 +41,21 @@ berlekamp syns = berlekamp' 1 0 [1] [0, 1] where
                                           (0 : c)
 
 calculateError :: Poly -> Poly -> Int -> Int -> Element
-calculateError syns elp k l = calculateError' 1 (syns!!(k - 1)) where
-    calculateError' index err
-        | index > l = err
-        | otherwise = calculateError' (index + 1)
-                                      (xor err $ elemMultiply (elp!!index)
-                                                              (syns!!(k - 1 - index)))
+calculateError sp elp k l = calculateError' 1 (sp!!(k - 1)) where
+    calculateError' i err
+        | i > l     = err
+        | otherwise = calculateError' (i + 1)
+                                      (xor err $ elemMultiply (elp!!i)
+                                                              (sp!!(k - 1 - i)))
 
 -- NOT WORKING
 -- there might need to be a check to see if the remainder is less than t
 -- but i do not know what to return in that case
 euclidean :: Poly -> (Poly, Poly)
-euclidean syn =
+euclidean sp =
     let xs = replicate (2 * t) 0 ++ [1]
-        remainder = polyDivide xs syn
-    in  euclidean' syn remainder
+        remainder = polyDivide xs sp
+    in  euclidean' sp remainder
 
 -- returns (error locator, error magnitude
 euclidean' :: Poly -> Poly -> (Poly, Poly)
@@ -62,10 +73,10 @@ chien elp = chien' [] 0 elp where
         | otherwise       = chien' rs (i + 1) (updateChien ts)
 
 updateChien :: Poly -> Poly
-updateChien terms = updateChien' (take 1 terms) 1 (toPoly!!1) where
-    updateChien' uTerms i alpha
-        | i == length terms = reverse uTerms
-        | otherwise = updateChien' ((elemMultiply alpha $ terms!!i) : uTerms)
+updateChien ts = updateChien' (take 1 ts) 1 (toPoly!!1) where
+    updateChien' uTs i alpha
+        | i == length ts = reverse uTs
+        | otherwise = updateChien' ((elemMultiply alpha $ ts!!i) : uTs)
                                    (i + 1)
                                    (elemMultiply alpha $ toPoly!!1)
 
@@ -73,17 +84,24 @@ forney :: Poly
        -> Poly
        -> [Element]
        -> [Element]
-forney sp elp errs = forney' [] 0 where
-    forney' vals i
-        | i == length errs = reverse vals
-        | otherwise = forney' (val : vals) (i + 1) where
+forney sp elp errps = forney' [] 0 where
+    forney' errvs i
+        | i == length errps = reverse errvs
+        | otherwise = forney' (errv : errvs) (i + 1) where
             elp'    = polyDerivative elp
             errMagP = polyDivide (polyMultiply sp elp) (replicate (2 * t) 0 ++ [1])
-            xs      = map (toPoly!!) errs
+            xs      = map (toPoly!!) errps
             xsInv   = map elemInv xs
-            val     = elemMultiply (xs!!i)
+            errv    = elemMultiply (xs!!i)
                                    (elemMultiply (polyEval errMagP (xsInv!!i))
                                                  (elemInv (polyEval elp' (xsInv!!i))))
 
-errorPoly :: [Int] -> [Element] -> Poly
-errorPoly = undefined
+errorPoly :: [Element] -> [Element] -> Poly
+errorPoly errps errvs = errorPoly' (replicate n 0) 0 where
+    errorPoly' errp i
+        | i == length errps = errp
+        | otherwise = errorPoly' (insert' i errp) (i + 1)
+    insert' i = insert (errvs!!i) (errps!!i)
+
+insert :: a -> Int -> [a] -> [a]
+insert x i xs = take i xs ++ [x] ++ drop (i + 1) xs
