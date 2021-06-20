@@ -37,6 +37,7 @@ calculateError syns elp k l = calculateError' 1 (syns!!(k - 1)) where
                                       (xor err $ elemMultiply (elp!!index)
                                                               (syns!!(k - 1 - index)))
 
+-- NOT WORKING
 -- there might need to be a check to see if the remainder is less than t
 -- but i do not know what to return in that case
 euclidean :: Poly -> (Poly, Poly)
@@ -51,17 +52,38 @@ euclidean' dividend divisor
     | polyDegree divisor < t = (dividend, divisor)
     | otherwise = euclidean' (divisor) (polyDivide dividend divisor)
 
+-- dont know if you can just sum the terms for the first evaluation
+-- returns a list of the error positions given the error locater
 chien :: Poly -> [Element]
-chien = undefined
+chien elp = chien' [] 0 elp where
+    chien' rs i ts
+        | i == 2 ^ m      = rs
+        | polySum ts == 0 = chien' (2^m - 1 - i : rs) (i + 1) (updateChien ts)
+        | otherwise       = chien' rs (i + 1) (updateChien ts)
 
-errorPositions :: [Element] -> [Int]
-errorPositions = undefined
+updateChien :: Poly -> Poly
+updateChien terms = updateChien' (take 1 terms) 1 (toPoly!!1) where
+    updateChien' uTerms i alpha
+        | i == length terms = reverse uTerms
+        | otherwise = updateChien' ((elemMultiply alpha $ terms!!i) : uTerms)
+                                   (i + 1)
+                                   (elemMultiply alpha $ toPoly!!1)
 
 forney :: Poly
        -> Poly
        -> [Element]
        -> [Element]
-forney = undefined
+forney sp elp errs = forney' [] 0 where
+    forney' vals i
+        | i == length errs = reverse vals
+        | otherwise = forney' (val : vals) (i + 1) where
+            elp'    = polyDerivative elp
+            errMagP = polyDivide (polyMultiply sp elp) (replicate (2 * t) 0 ++ [1])
+            xs      = map (toPoly!!) errs
+            xsInv   = map elemInv xs
+            val     = elemMultiply (xs!!i)
+                                   (elemMultiply (polyEval errMagP (xsInv!!i))
+                                                 (elemInv (polyEval elp' (xsInv!!i))))
 
 errorPoly :: [Int] -> [Element] -> Poly
 errorPoly = undefined

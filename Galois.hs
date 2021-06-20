@@ -78,11 +78,11 @@ polyDivide a b = let diff   = polyDegree a - polyDegree b
 polyMultiplyX :: Poly -> Int -> Poly
 polyMultiplyX p n = replicate n 0 ++ p
 
-ddx :: Poly -> Poly
-ddx p = tail $ go p 0 [] where
-    go [] _ p' = reverse p'
-    go (p:ps) 0 p' = go ps 1 (0:p')
-    go (p:ps) 1 p' = go ps 0 (p:p')
+polyDerivative :: Poly -> Poly
+polyDerivative p = drop 1 $ ddx p 0 [] where
+    ddx [] _ p' = reverse p'
+    ddx (p:ps) 0 p' = ddx ps 1 (0:p')
+    ddx (p:ps) 1 p' = ddx ps 0 (p:p')
 
 polyDegree :: Poly -> Int
 polyDegree p = f (length p - 1) where
@@ -102,6 +102,9 @@ polyEval' p e = let p' = reverse p
                     eval [] e' = e'
                     eval (p:ps) e' = eval ps (e' * e + p)
                 in  eval p' 0
+
+polySum :: Poly -> Element
+polySum p = foldr (\a b -> xor a b) 0 p
 
 elemMultiply :: Element -> Element -> Element
 elemMultiply a b = if a == 0 || b == 0
