@@ -1,7 +1,8 @@
 module Main where
 
-import System.IO
 import ReedSolomon
+
+import System.IO
 
 main :: IO ()
 main = do

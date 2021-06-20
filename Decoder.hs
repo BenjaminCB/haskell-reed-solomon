@@ -3,6 +3,8 @@ module Decoder where
 import Types
 import Config
 import Galois
+import Util
+
 import Data.Bits
 
 decodeBlock :: Poly -> Poly
@@ -102,6 +104,3 @@ errorPoly errps errvs = errorPoly' (replicate n 0) 0 where
         | i == length errps = errp
         | otherwise = errorPoly' (insert' i errp) (i + 1)
     insert' i = insert (errvs!!i) (errps!!i)
-
-insert :: a -> Int -> [a] -> [a]
-insert x i xs = take i xs ++ [x] ++ drop (i + 1) xs
