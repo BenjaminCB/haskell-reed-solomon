@@ -8,46 +8,48 @@ import Data.Char
 -- data processing for text to polynomial
 ---------------------------------------------------------------------------------
 strToPoly :: String -> [Poly]
-strToPoly str = reverse $ addZeroes $ splitBinToPoly $ strToSplitBin str where
-    addZeroes (x:xs) | length x < k = addZeroes ((0:x) : xs)
-                     | otherwise    = x:xs
+strToPoly = splitBinToPoly . strToSplitBin
 
+-- turn a sectioned list of bits strings into a set of polynomial
+-- zeroes are padded until we can have a list of polynomials where they are all of size k
+-- addZeroes should be optimized
 splitBinToPoly :: [Bits] -> [Poly]
-splitBinToPoly bs = splitBinToPoly' (map binToDec bs) [] where
-    splitBinToPoly' [] ps = ps
-    splitBinToPoly' es ps = splitBinToPoly' (drop k es) (take k es : ps)
+splitBinToPoly bs = splitBinToPoly' (addZeroes $ map binToDec bs) [] where
+    addZeroes bs = if length bs `mod` k == 0
+                   then bs
+                   else addZeroes (0 : bs)
+    splitBinToPoly' bs ps
+        | length bs == 0 = reverse ps
+        | otherwise      = splitBinToPoly' (drop k bs) (take k bs : ps)
 
 strToSplitBin :: String -> [Bits]
 strToSplitBin = flip splitBin m . strToBin
 
 strToBin :: String -> Bits
-strToBin str = let charCodes = map ord str
-                   utfs      = map (toUTF . decToBin) charCodes
-               in  concat utfs
-
-splitBin :: Bits -> Int -> [Bits]
-splitBin bs n =
-    if mod (length bs) n /= 0
-    then error "splitBin error"
-    else splitStr' bs n [] where
-        splitStr' [] _ bss = reverse bss
-        splitStr' bs n bss = splitStr' (drop n bs) n (take n bs : bss)
+strToBin str = concatMap (toUTF . decToBin . ord) str
 
 ---------------------------------------------------------------------------------
 -- data processing for polynomial to text
 ---------------------------------------------------------------------------------
-polyToStr :: Poly -> String
-polyToStr = binToStr . polyToBin
+polyToStr :: [Poly] -> String
+polyToStr ps = binToStr $ concatMap polyToBin ps
 
 polyToBin :: Poly -> Bits
-polyToBin p = concat $ map (toSymbolSize . decToBin) p
+polyToBin p = concatMap (toSymbolSize . decToBin) p
 
 binToStr :: Bits -> String
-binToStr bs = map (chr . binToDec) $ splitBin bs 8
+binToStr bs = map chr $ map binToDec $ splitBin bs 8
 
 ---------------------------------------------------------------------------------
 -- rest of the functions
 ---------------------------------------------------------------------------------
+-- split a bit string into sections of a specific size
+-- might need an error case if we can't have an even number of sections
+splitBin :: Bits -> Int -> [Bits]
+splitBin b n = splitBin' b [] where
+    splitBin' [] bs = reverse bs
+    splitBin' b  bs = splitBin' (drop n b) (take n b : bs)
+
 binToBinStr :: Bits -> String
 binToBinStr []         = ""
 binToBinStr (True:bs)  = "1" ++ binToBinStr bs
@@ -64,8 +66,11 @@ decToBin n = if n == 0
                                | even n = False : decToBin' (div n 2)
                                | otherwise = True : decToBin' (div n 2)
 
+toSize :: Int -> Bits -> Bits
+toSize n bs = bs ++ replicate (n - length bs) False
+
 toUTF :: Bits -> Bits
-toUTF bs = bs ++ replicate (8 - length bs) False
+toUTF = toSize 8
 
 toSymbolSize :: Bits -> Bits
-toSymbolSize bs = bs ++ replicate (m - length bs) False
+toSymbolSize = toSize m

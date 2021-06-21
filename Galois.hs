@@ -71,7 +71,7 @@ polyDivide a b = let diff   = polyDegree a - polyDegree b
                      aOverB = elemMultiply (last a) (elemInv $ last b)
                      mb     = map (elemMultiply aOverB) b
                      ta     = take (length a - 1)
-                 in  if diff == 0
+                 in  if diff <= 0
                      then ta $ polyAdd a mb
                      else polyDivide (ta $ polyAdd a $ polyMultiplyX mb diff) b
 
