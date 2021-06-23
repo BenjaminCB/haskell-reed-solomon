@@ -38,7 +38,7 @@ polyToBin :: Poly -> Bits
 polyToBin p = concatMap (toSymbolSize . decToBin) p
 
 binToStr :: Bits -> String
-binToStr bs = map chr $ map binToDec $ splitBin bs 8
+binToStr bs = map chr $ filter (/=0) $ map binToDec $ splitBin bs 8
 
 ---------------------------------------------------------------------------------
 -- rest of the functions
@@ -47,8 +47,9 @@ binToStr bs = map chr $ map binToDec $ splitBin bs 8
 -- might need an error case if we can't have an even number of sections
 splitBin :: Bits -> Int -> [Bits]
 splitBin b n = splitBin' b [] where
-    splitBin' [] bs = reverse bs
-    splitBin' b  bs = splitBin' (drop n b) (take n b : bs)
+    splitBin' [] bs = bs
+    splitBin' b  bs = let len = length b - n
+                      in  splitBin' (take len b) (drop len b : bs)
 
 binToBinStr :: Bits -> String
 binToBinStr []         = ""
