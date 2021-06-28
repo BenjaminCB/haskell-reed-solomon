@@ -1,6 +1,6 @@
 module ErrorInjection where
 
-import Config
+import qualified Config as C
 import Types
 import DataProcessing
 
@@ -14,7 +14,7 @@ burstErrorInjection = undefined
 
 polyBitErrorInjection :: [Poly] -> Double -> [Poly]
 polyBitErrorInjection polys chance =
-    (bitsToPolys . (flip bitErrorInjection chance) . polysToBits) polys
+    bitsToPolys . (`bitErrorInjection` chance) . polysToBits $ polys
 
 -- every bit has an equal chance to be flipped
 -- 100 meaning 100% 0 meaning 0%

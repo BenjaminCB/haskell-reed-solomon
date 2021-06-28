@@ -1,29 +1,29 @@
 module DataProcessing where
 
 import Types
-import Config
+import qualified Config as C
 import Data.Char
 
 ---------------------------------------------------------------------------------
 -- data processing for text to polynomial
 ---------------------------------------------------------------------------------
 strToPoly :: String -> [Poly]
-strToPoly = splitBinToPoly . strToSplitBin
+strToPoly = (`splitBinToPoly` C.k) . strToSplitBin
 
 -- turn a sectioned list of bits strings into a set of polynomial
 -- zeroes are padded until we can have a list of polynomials where they are all of size k
 -- addZeroes should be optimized
-splitBinToPoly :: [Bits] -> [Poly]
-splitBinToPoly bs = splitBinToPoly' (addZeroes $ map binToDec bs) [] where
-    addZeroes bs = if length bs `mod` k == 0
+splitBinToPoly :: [Bits] -> Int -> [Poly]
+splitBinToPoly bs len = splitBinToPoly' (addZeroes $ map binToDec bs) [] where
+    addZeroes bs = if length bs `mod` len == 0
                    then bs
                    else addZeroes (0 : bs)
     splitBinToPoly' bs ps
         | null bs   = reverse ps
-        | otherwise = splitBinToPoly' (drop k bs) (take k bs : ps)
+        | otherwise = splitBinToPoly' (drop len bs) (take len bs : ps)
 
 strToSplitBin :: String -> [Bits]
-strToSplitBin = flip splitBin m . strToBin
+strToSplitBin = flip splitBin C.m . strToBin
 
 strToBin :: String -> Bits
 strToBin = concatMap (toUTF . decToBin . ord)
@@ -74,10 +74,10 @@ toUTF :: Bits -> Bits
 toUTF = toSize 8
 
 toSymbolSize :: Bits -> Bits
-toSymbolSize = toSize m
+toSymbolSize = toSize C.m
 
 bitsToPolys :: Bits -> [Poly]
-bitsToPolys = undefined
+bitsToPolys = (`splitBinToPoly` C.n) . (`splitBin` C.m)
 
 polysToBits :: [Poly] -> Bits
-polysToBits = undefined
+polysToBits = concatMap polyToBin
