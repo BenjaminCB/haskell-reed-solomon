@@ -19,14 +19,14 @@ splitBinToPoly bs = splitBinToPoly' (addZeroes $ map binToDec bs) [] where
                    then bs
                    else addZeroes (0 : bs)
     splitBinToPoly' bs ps
-        | length bs == 0 = reverse ps
-        | otherwise      = splitBinToPoly' (drop k bs) (take k bs : ps)
+        | null bs   = reverse ps
+        | otherwise = splitBinToPoly' (drop k bs) (take k bs : ps)
 
 strToSplitBin :: String -> [Bits]
 strToSplitBin = flip splitBin m . strToBin
 
 strToBin :: String -> Bits
-strToBin str = concatMap (toUTF . decToBin . ord) str
+strToBin = concatMap (toUTF . decToBin . ord)
 
 ---------------------------------------------------------------------------------
 -- data processing for polynomial to text
@@ -35,7 +35,7 @@ polyToStr :: [Poly] -> String
 polyToStr ps = binToStr $ concatMap polyToBin ps
 
 polyToBin :: Poly -> Bits
-polyToBin p = concatMap (toSymbolSize . decToBin) p
+polyToBin = concatMap (toSymbolSize . decToBin)
 
 binToStr :: Bits -> String
 binToStr bs = map chr $ filter (/=0) $ map binToDec $ splitBin bs 8
@@ -75,3 +75,9 @@ toUTF = toSize 8
 
 toSymbolSize :: Bits -> Bits
 toSymbolSize = toSize m
+
+bitsToPolys :: Bits -> [Poly]
+bitsToPolys = undefined
+
+polysToBits :: [Poly] -> Bits
+polysToBits = undefined
