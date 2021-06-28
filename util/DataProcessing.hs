@@ -3,6 +3,7 @@ module DataProcessing where
 import Types
 import qualified Config as C
 import Data.Char
+import qualified Util as U
 
 ---------------------------------------------------------------------------------
 -- data processing for text to polynomial
@@ -23,7 +24,7 @@ splitBinToPoly bs len = splitBinToPoly' (addZeroes $ map binToDec bs) [] where
         | otherwise = splitBinToPoly' (drop len bs) (take len bs : ps)
 
 strToSplitBin :: String -> [Bits]
-strToSplitBin = flip splitBin C.m . strToBin
+strToSplitBin = flip U.split C.m . strToBin
 
 strToBin :: String -> Bits
 strToBin = concatMap (toUTF . decToBin . ord)
@@ -38,19 +39,11 @@ polyToBin :: Poly -> Bits
 polyToBin = concatMap (toSymbolSize . decToBin)
 
 binToStr :: Bits -> String
-binToStr bs = map chr $ filter (/=0) $ map binToDec $ splitBin bs 8
+binToStr bs = map chr $ filter (/=0) $ map binToDec $ U.split bs 8
 
 ---------------------------------------------------------------------------------
 -- rest of the functions
 ---------------------------------------------------------------------------------
--- split a bit string into sections of a specific size
--- might need an error case if we can't have an even number of sections
-splitBin :: Bits -> Int -> [Bits]
-splitBin b n = splitBin' b [] where
-    splitBin' [] bs = bs
-    splitBin' b  bs = let len = length b - n
-                      in  splitBin' (take len b) (drop len b : bs)
-
 binToBinStr :: Bits -> String
 binToBinStr []         = ""
 binToBinStr (True:bs)  = "1" ++ binToBinStr bs
@@ -77,7 +70,7 @@ toSymbolSize :: Bits -> Bits
 toSymbolSize = toSize C.m
 
 bitsToPolys :: Bits -> [Poly]
-bitsToPolys = (`splitBinToPoly` C.n) . (`splitBin` C.m)
+bitsToPolys = (`splitBinToPoly` C.n) . (`U.split` C.m)
 
 polysToBits :: [Poly] -> Bits
 polysToBits = concatMap polyToBin
