@@ -1,4 +1,18 @@
-module Galois where
+module Galois
+    ( toPoly
+    , toIndex
+    , codeGenerator
+    , elemInv
+    , elemMultiply
+    , polyAdd
+    , polyDegree
+    , polyDerivative
+    , polyDivide
+    , polyEval
+    , polyMultiply
+    , polyMultiplyX
+    , polySum)
+    where
 
 -------------------------------------------------------------------------------
 ----should start using maybe as -1 in the multiply step gives wierds results---

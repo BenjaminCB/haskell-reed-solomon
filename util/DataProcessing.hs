@@ -1,4 +1,11 @@
-module DataProcessing where
+module DataProcessing
+    ( strToPoly
+    , polyToStr
+    , decToBin
+    , binToDec
+    , polysToBits
+    , bitsToPolys)
+    where
 
 import Types
 import qualified Config as C

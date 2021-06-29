@@ -1,4 +1,10 @@
-module Decoder where
+module Decoder
+    ( decodeBlock
+    , syndromes
+    , berlekamp
+    , forney
+    , errorPoly )
+    where
 
 import Types
 import qualified Config as C

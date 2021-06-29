@@ -1,4 +1,7 @@
-module ErrorInjection where
+module ErrorInjection
+    ( polyBurstErrorInjection
+    , polyBitErrorInjection )
+    where
 
 import qualified Config as C
 import Types
