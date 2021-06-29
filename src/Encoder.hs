@@ -1,10 +1,10 @@
 module Encoder where
 
-import Galois
+import qualified Galois as G
 import Types
-import Config
+import qualified Config as C
 
 encodeBlock :: Poly -> Poly
-encodeBlock msg = let msgShifted = polyMultiplyX msg $ 2 * t
-                      remainder  = polyDivide msgShifted codeGenerator
-                  in  polyAdd msgShifted remainder
+encodeBlock msg = let msgShifted = G.polyMultiplyX msg $ 2 * C.t
+                      remainder  = G.polyDivide msgShifted G.codeGenerator
+                  in  G.polyAdd msgShifted remainder

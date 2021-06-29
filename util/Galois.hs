@@ -5,18 +5,18 @@ module Galois where
 -------------------------------------------------------------------------------
 
 import Types
-import Config
+import qualified Config as C
 import Data.Bits
 import Data.List
 
-toPoly        = initToPoly g
+toPoly        = initToPoly C.g
 toIndex       = initToIndex' toPoly
 codeGenerator = initCodeGenerator toPoly
 
 
 initToPoly :: Element -> [Element]
 initToPoly gen =
-    let size = 2 ^ m
+    let size = 2 ^ C.m
         hb   = highestBit gen
         init' is _ 0 = reverse is
         init' is c i =
@@ -35,7 +35,7 @@ initToIndex' xs = (-1) : listFlip xs
 
 initCodeGenerator :: [Element] -> [Element]
 initCodeGenerator xs = init [head toPoly, 1] 1 where
-    init code n | n < 2 * t = init (polyMultiply code [xs!!n, 1]) (n + 1)
+    init code n | n < 2 * C.t = init (polyMultiply code [xs!!n, 1]) (n + 1)
                 | otherwise = code
 
 listFlip :: [Int] -> [Int]
@@ -118,8 +118,8 @@ polySum = foldr xor 0
 elemMultiply :: Element -> Element -> Element
 elemMultiply a b = if a == 0 || b == 0
                    then 0
-                   else (!!) toPoly $ mod (toIndex!!a + toIndex!!b) (2 ^ m - 1)
+                   else (!!) toPoly $ mod (toIndex!!a + toIndex!!b) (2 ^ C.m - 1)
 
 elemInv :: Element -> Element
 elemInv e = (!!) toPoly $ mod (nElements - (toIndex!!e)) nElements where
-    nElements = 2 ^ m - 1
+    nElements = 2 ^ C.m - 1
