@@ -16,7 +16,8 @@ extra-source-files:  data/input.txt,
 
 executable reedSolomon
     main-is:                Main.hs
-    hs-source-dirs:         src
+    hs-source-dirs:         src,
+                            util
     build-depends:          base >= 4.7 && < 5,
                             reedSolomon,
                             random
