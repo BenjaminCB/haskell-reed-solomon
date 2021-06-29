@@ -23,11 +23,13 @@ import qualified Config as C
 import Data.Bits
 import Data.List
 
-toPoly        = initToPoly C.g
-toIndex       = initToIndex' toPoly
+toPoly        = initToPoly C.g              -- maps index form to poly form
+toIndex       = initToIndex' toPoly         -- maps poly form to index form
 codeGenerator = initCodeGenerator toPoly
 
-
+-- Generates one part of the multiplication table
+-- by continuously multiplying by alpha modulo field generator
+-- However these can be interpreted as a shift to the right and an xor
 initToPoly :: Element -> [Element]
 initToPoly gen =
     let size = 2 ^ C.m
@@ -52,6 +54,8 @@ initCodeGenerator xs = init [head toPoly, 1] 1 where
     init code n | n < 2 * C.t = init (polyMultiply code [xs!!n, 1]) (n + 1)
                 | otherwise = code
 
+-- Flips indencies with values in a list
+-- should be moved to Util.hs
 listFlip :: [Int] -> [Int]
 listFlip xs = map (indexOf xs) [1..maximum xs]
 
@@ -77,11 +81,11 @@ polyAdd a b = let (long, short) = if length a > length b
                   len           = length short
               in zipWith xor short long ++ drop len long
 
--- need to draw this out to understand it
 polyMultiply :: Poly -> Poly -> Poly
 polyMultiply [] _ = [0]
 polyMultiply (x:xs) ys = polyAdd (map (elemMultiply x) ys) (0 : polyMultiply xs ys)
 
+-- This is akin to long division but with galois field arithmetic
 polyDivide :: Poly -> Poly -> Poly
 polyDivide a b = polyDivide' (removeRedundency a) (removeRedundency b) where
     removeRedundency [] = []
@@ -113,6 +117,7 @@ polyDegree p = f (length p - 1) where
         | p!!n > 0         = n
         | otherwise        = f $ n - 1
 
+-- Use horners method for evaluation
 polyEval :: Poly -> Element -> Element
 polyEval p e = let p' = reverse p
                    eval [] e' = e'
@@ -129,6 +134,7 @@ polyEval' p e = let p' = reverse p
 polySum :: Poly -> Element
 polySum = foldr xor 0
 
+-- Use the generated tables for multiplicaton
 elemMultiply :: Element -> Element -> Element
 elemMultiply a b = if a == 0 || b == 0
                    then 0

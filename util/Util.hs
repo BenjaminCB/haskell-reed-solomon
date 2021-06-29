@@ -1,5 +1,6 @@
 module Util where
 
+-- Takes a list list of values and indencies to be replaced in a list
 insertAll :: [a] -> [Int] -> [a] -> [a]
 insertAll [] _ as = as
 insertAll _ [] as = as

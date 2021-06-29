@@ -13,6 +13,9 @@ import qualified Util as U
 
 import Data.Bits
 
+-- Tries to correct the errors in a received message,
+-- however it does not find out if there are to many errors
+-- therefore you cannot be certain that the output is correct
 decodeBlock :: Poly -> Poly
 decodeBlock received =
     if any (/=0) sp
@@ -26,12 +29,13 @@ decodeBlock received =
         errp = errorPoly errps errvs
         recovered = G.polyAdd received errp
 
-
+-- returs a list of syndromes given the received code word
 syndromes :: Poly -> Poly
 syndromes received = calc 0 [] where
     calc i syn | i == 2 * C.t = reverse syn
                | otherwise  = calc (i + 1) (G.polyEval received (G.toPoly!!i) : syn)
 
+-- Given the syndromes calculates the error locator polynomial
 berlekamp :: Poly -> Poly
 berlekamp sp = berlekamp' 1 0 [1] [0, 1] where
     berlekamp' k l elp c
@@ -88,6 +92,7 @@ updateChien ts = updateChien' (take 1 ts) 1 (G.toPoly!!1) where
                                    (i + 1)
                                    (G.elemMultiply alpha $ G.toPoly!!1)
 
+-- Given the syndromes, error locator and roots, calculates the orror values
 forney :: Poly
        -> Poly
        -> [Element]
@@ -104,10 +109,6 @@ forney sp elp errps = forney' [] 0 where
                                    (G.elemMultiply (G.polyEval errMagP (xsInv!!i))
                                                  (G.elemInv (G.polyEval elp' (xsInv!!i))))
 
+-- Combines the orror positions and values to contruct the error polynomial
 errorPoly :: [Element] -> [Element] -> Poly
 errorPoly errps errvs = U.insertAll errvs errps $ replicate C.n 0
--- errorPoly errps errvs = errorPoly' (replicate C.n 0) 0 where
---     errorPoly' errp i
---         | i == length errps = errp
---         | otherwise = errorPoly' (insert' i errp) (i + 1)
---     insert' i = U.insert (errvs!!i) (errps!!i)

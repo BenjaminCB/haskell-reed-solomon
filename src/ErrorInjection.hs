@@ -45,5 +45,7 @@ randomMaxMin :: Double -> Double -> Int -> [Int]
 randomMaxMin upper lower seed =
     map (fromIntegral . floor . (\x -> x * (upper - lower + 1) + lower)) (randomList seed)
 
+-- Takes a list of polynomials and tries to create something that is seemingly random
+-- With this i can get close to the desired result without having to touch IO
 polysToPsuedoRandomGen :: [Poly] -> Int
 polysToPsuedoRandomGen = foldr (\a b -> sum a `xor` b) 0
