@@ -11,8 +11,6 @@ copyright:           2021 BenjaminCB
 category:            Text
 build-type:          Simple
 cabal-version:       >=1.10
-extra-source-files:  data/input.txt,
-                     data/output.txt
 
 executable reedSolomon
     main-is:                Main.hs
