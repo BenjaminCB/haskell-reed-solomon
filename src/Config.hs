@@ -1,7 +1,7 @@
 module Config where
 
-m = 4 :: Int
-n = 15 :: Int
-k = 11 :: Int
+m = 8 :: Int
+n = 255 :: Int
+k = 239 :: Int
 t = div (n - k) 2 :: Int
-g = 2 ^ 4 + 2 ^ 1 + 1 :: Int
+g = 285 :: Int

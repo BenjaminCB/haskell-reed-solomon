@@ -15,15 +15,17 @@ codeGenerator = initCodeGenerator toPoly
 
 
 initToPoly :: Element -> [Element]
-initToPoly gen = let size = 2 ^ m
-                     hb   = highestBit gen
-                     init is _ 0 = reverse is
-                     init is c i = let c' = shift c 1
-                                       c'' = xor c' gen
-                                   in if hasBit c' hb
-                                      then init (c'':is) c'' (i - 1)
-                                      else init (c':is) c' (i - 1)
-                     in init [1] 1 (size - 2)
+initToPoly gen =
+    let size = 2 ^ m
+        hb   = highestBit gen
+        init' is _ 0 = reverse is
+        init' is c i =
+            let c'  = shift c 1
+                c'' = xor c' gen
+            in  if hasBit c' hb
+                then init' (c'':is) c'' (i - 1)
+                else init' (c':is) c' (i - 1)
+    in  init' [1] 1 (size - 2)
 
 initToIndex :: Element -> [Int]
 initToIndex gen = (:) (-1) $ listFlip $ initToPoly gen
@@ -67,13 +69,20 @@ polyMultiply [] _ = [0]
 polyMultiply (x:xs) ys = polyAdd (map (elemMultiply x) ys) (0 : polyMultiply xs ys)
 
 polyDivide :: Poly -> Poly -> Poly
-polyDivide a b = let diff   = polyDegree a - polyDegree b
-                     aOverB = elemMultiply (last a) (elemInv $ last b)
-                     mb     = map (elemMultiply aOverB) b
-                     ta     = take (length a - 1)
-                 in  if diff <= 0
-                     then ta $ polyAdd a mb
-                     else polyDivide (ta $ polyAdd a $ polyMultiplyX mb diff) b
+polyDivide a b = polyDivide' (removeRedundency a) (removeRedundency b) where
+    removeRedundency [] = []
+    removeRedundency xs =
+        if last xs == 0
+        then removeRedundency $ init xs
+        else xs
+    polyDivide' a b =
+        let diff   = polyDegree a - polyDegree b
+            aOverB = elemMultiply (last a) (elemInv $ last b)
+            mb     = map (elemMultiply aOverB) b
+            ta     = take (length a - 1)
+        in  if diff <= 0
+            then ta $ polyAdd a mb
+            else polyDivide (ta $ polyAdd a $ polyMultiplyX mb diff) b
 
 polyMultiplyX :: Poly -> Int -> Poly
 polyMultiplyX p n = replicate n 0 ++ p
@@ -104,7 +113,7 @@ polyEval' p e = let p' = reverse p
                 in  eval p' 0
 
 polySum :: Poly -> Element
-polySum p = foldr (\a b -> xor a b) 0 p
+polySum = foldr xor 0
 
 elemMultiply :: Element -> Element -> Element
 elemMultiply a b = if a == 0 || b == 0

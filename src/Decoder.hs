@@ -78,7 +78,7 @@ updateChien :: Poly -> Poly
 updateChien ts = updateChien' (take 1 ts) 1 (toPoly!!1) where
     updateChien' uTs i alpha
         | i == length ts = reverse uTs
-        | otherwise = updateChien' ((elemMultiply alpha $ ts!!i) : uTs)
+        | otherwise = updateChien' (elemMultiply alpha (ts!!i) : uTs)
                                    (i + 1)
                                    (elemMultiply alpha $ toPoly!!1)
 
@@ -87,13 +87,13 @@ forney :: Poly
        -> [Element]
        -> [Element]
 forney sp elp errps = forney' [] 0 where
+    elp'    = polyDerivative elp
+    errMagP = polyDivide (polyMultiply sp elp) (replicate (2 * t) 0 ++ [1])
+    xs      = map (toPoly!!) errps
+    xsInv   = map elemInv xs
     forney' errvs i
         | i == length errps = reverse errvs
         | otherwise = forney' (errv : errvs) (i + 1) where
-            elp'    = polyDerivative elp
-            errMagP = polyDivide (polyMultiply sp elp) (replicate (2 * t) 0 ++ [1])
-            xs      = map (toPoly!!) errps
-            xsInv   = map elemInv xs
             errv    = elemMultiply (xs!!i)
                                    (elemMultiply (polyEval errMagP (xsInv!!i))
                                                  (elemInv (polyEval elp' (xsInv!!i))))
